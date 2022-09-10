@@ -3,7 +3,7 @@
 
 from typing import List
 
-from hendlers.google_tools import get_events_list
+from hendlers.google_tools import get_free_events, Event, get_users_booking
 
 
 HELLO_TEXT = (
@@ -63,11 +63,11 @@ MONTH_PADESH_DICT = {
 }
 
 
-# class Event:
-#     def __init__(self, event) -> None:
-#         self.event = event
-    
-#     def get_deta(self) -> List[str]:
+def print_booking(booking: List[str]):
+    result = 'У вас актуальные бронирования на:\n'
+    for string in booking:
+        result += f'{string}\n'
+    return result
 
 
 
@@ -81,7 +81,7 @@ def month_convert_to_digit(input_value: int) -> int:
 
 def admin_notification_hendler(data: dict) -> str:
     """Обрабатывает информацию для отправки сообщения об успешном
-     бронировании преподавателю."""
+    бронировании преподавателю."""
 
     user = data.get('user')
     month = MONTH_PADESH_DICT[data.get('month')]
@@ -96,37 +96,41 @@ def admin_notification_hendler(data: dict) -> str:
     return output_str
 
 
+def event_hour_hendler(event_str: str) -> str:
+    """Принимет текст ответа пользователя и возвращает список с часом и минутой
+    начала забронированного времени."""
+
+    first_split = event_str.split(' ')
+    return first_split[1].split(':')
+
+
 def events_list_hendler() -> str:
     """Получает список ивентов из гугл словаря,
     забирает оттуда дату провебения, время начала и окончания
     события и выдаёт эту информацию в виде строки."""
 
-    input_list = get_events_list()
     actions = 'Свободное время есть:\n'
-    event_list = []
-
-    if not input_list:
-        return 'Уточните, настроен ли гугл календарь у преподавателя.'
-
-    for simple_event in input_list:
-        if simple_event.get('summary') == 'свободно':
-            event_list.append(simple_event)
+    event_list = get_free_events()
 
     if not event_list:
         return 'На данный момент, свободного времени нет.'
 
     for event in event_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        finish = event['end'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        finish_list = finish.split('T')
-        date_start_split = start_list[0].split('-')
-        time_start_split = start_list[1].split(':')
-        finish_time_split = finish_list[1].split(':')
+        dt_start = event.get_detatime_start()
+        dt_finish = event.get_detatime_finish()
+
+        s_dey = dt_start.get('day')
+        s_monh = dt_start.get('month')
+        s_hour = dt_start.get('hour')
+        s_minutes = dt_start.get('minutes')
+
+        f_hour = dt_finish.get('hour')
+        f_minutes = dt_finish.get('minutes')
+
         one_action = (
-            f'{date_start_split[2]}.{date_start_split[1]} '
-            + f'c {time_start_split[0]}:{time_start_split[1]} '
-            + f'до {finish_time_split[0]}:{finish_time_split[1]}'
+            f'{s_dey}.{s_monh} '
+            + f'c {s_hour}:{s_minutes} '
+            + f'до {f_hour}:{f_minutes}'
         )
         actions += one_action + '\n'
 
@@ -137,20 +141,13 @@ def get_event_month() -> List[str]:
     """Просматривает расписаение и выдаёт список месяцев в которых есть
     свободное для бронирования время."""
 
-    input_list = get_events_list()
-    valid_events_list = []
+    valid_events_list = get_free_events()
     output_list = []
-    # выбираает ивенты с пометкой 'свободно'
-    for simple_event in input_list:
-        if simple_event.get('summary') == 'свободно':
-            valid_events_list.append(simple_event)
     # записывает в словарь месяца в которых есть свободное время
     for event in valid_events_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date_start_split = start_list[0].split('-')
+        dt_start = event.get_detatime_start()
 
-        month = MONTH_DICT.get(date_start_split[1])
+        month = MONTH_DICT.get(dt_start.get('month'))
         if month not in output_list:
             output_list.append(month)
     
@@ -161,29 +158,20 @@ def get_event_day(choosen_month: str) -> List[str]:
     """Принимает месяц, возвращает дни в которые есть свободное для
     бронирования время."""
 
-    input_list = get_events_list()
-    first_validation_events_list = []
-    second_validation_events_list = []
+    first_validation_events_list = get_free_events()
+    second_validation_events_list: List[Event] = []
     output_list = []
-    # выбираает ивенты с пометкой 'свободно'
-    for simple_event in input_list:
-        if simple_event.get('summary') == 'свободно':
-            first_validation_events_list.append(simple_event)
-    # из всего списка ивентов выбирает только евенты указанного месяца
+
     for event in first_validation_events_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date_start_split = start_list[0].split('-')
+        dt_start = event.get_detatime_start()
         
-        if date_start_split[1] == choosen_month:
+        if dt_start.get('month') == choosen_month:
             second_validation_events_list.append(event)
     # записывает в список дни в которых есть свободное время 
     for event in second_validation_events_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date_start_split = start_list[0].split('-')
+        dt_start = event.get_detatime_start()
 
-        day = date_start_split[2]
+        day = dt_start.get('day')
         if day not in output_list:
             output_list.append(day)
     
@@ -191,35 +179,32 @@ def get_event_day(choosen_month: str) -> List[str]:
 
 
 def get_event_hour(choosen_month: str, choosen_day: str) -> List[str]:
-    """Принимает месяц идень, выдаёт все свободные "окна" в указанный день."""
+    """Принимает месяц и день, выдаёт все свободные "окна" в указанный день."""
 
-    input_list = get_events_list()
-    first_validation_events_list = []
-    second_validation_events_list = []
+    first_validation_events_list = get_free_events()
+    second_validation_events_list: List[Event] = []
     output_list = []
-    # выбираает ивенты с пометкой 'свободно'
-    for simple_event in input_list:
-        if simple_event.get('summary') == 'свободно':
-            first_validation_events_list.append(simple_event)
-    # из всего списка ивентов выбирает только евенты указанного месяца и дня
+
     for event in first_validation_events_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date_start = start_list[0].split('-')
+        dt_start = event.get_detatime_start()
+        day = dt_start.get('day')
+        month = dt_start.get('month')
         
-        if date_start[1] == choosen_month and date_start[2] == choosen_day:
+        if month == choosen_month and day == choosen_day:
             second_validation_events_list.append(event)
     # формирует список из свободных "окон" в расписании
     for event in second_validation_events_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        finish = event['end'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        finish_list = finish.split('T')
-        time_start_split = start_list[1].split(':')
-        finish_time_split = finish_list[1].split(':')
+        start = event.get_detatime_start()
+        finish = event.get_detatime_finish()
+
+        hour_st = start.get('hour')
+        minutes_st = start.get('minutes')
+        hour_fn = finish.get('hour')
+        minutes_fn = finish.get('minutes')
+
         action = (
-            f'c {time_start_split[0]}:{time_start_split[1]} '
-            + f'до {finish_time_split[0]}:{finish_time_split[1]}'
+            f'c {hour_st}:{minutes_st} '
+            + f'до {hour_fn}:{minutes_fn}'
         )
         if action not in output_list:
             output_list.append(action)
@@ -227,43 +212,31 @@ def get_event_hour(choosen_month: str, choosen_day: str) -> List[str]:
     return output_list
 
 
-def event_hour_hendler(event_str: str) -> str:
-    """Принимет текст ответа пользователя и возвращает список с часом и минутой
-    начала забронированного времени."""
-
-    first_split = event_str.split(' ')
-    return first_split[1].split(':')
-
-
 def user_booking(username: str) -> List[str]:
     """Выдаёт список с датами и временим которые этот юзер бронировал"""
 
-    input_list = get_events_list()
-    event_list = []
+    event_list = get_users_booking(username)
     outout_list = []
 
-    for simple_event in input_list:
-        if simple_event.get('summary') == username:
-            event_list.append(simple_event)
-
-    if not event_list:
-        event_list.append('На данный момент, свободного времени нет.')
-
     for event in event_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        finish = event['end'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        finish_list = finish.split('T')
-        date_start_split = start_list[0].split('-')
-        time_start_split = start_list[1].split(':')
-        finish_time_split = finish_list[1].split(':')
+        start = event.get_detatime_start()
+        finish = event.get_detatime_finish()
+        
+        month_st = start.get('month')
+        day_st = start.get('day')
+        hour_st = start.get('hour')
+        minutes_st = start.get('minutes')
+        hour_fn = finish.get('hour')
+        minutes_fn = finish.get('minutes')
         one_action = (
-            f'{date_start_split[2]}.{date_start_split[1]} '
-            + f'c {time_start_split[0]}:{time_start_split[1]} '
-            + f'до {finish_time_split[0]}:{finish_time_split[1]}'
+            f'{day_st}.{month_st} '
+            + f'c {hour_st}:{minutes_st} '
+            + f'до {hour_fn}:{minutes_fn}'
         )
         outout_list.append(one_action)
 
     return outout_list
 
 
+if __name__ == 'main':
+    pass

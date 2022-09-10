@@ -5,6 +5,7 @@ import pickle
 import os
 import datetime
 from collections import namedtuple
+from typing import Dict
 from google_auth_oauthlib.flow import Flow, InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -103,6 +104,52 @@ class GoogleSheetsHelper:
 		}
 		return json_body
 
+
+
+class Event:
+    """Клас для распарсивания информации об ивентах."""
+
+    def __init__(self, event) -> None:
+        self.event = event
+
+    def get_detatime_start(self) -> Dict[str, str]:
+        """Возвращает словарь в котором по ключам: 'month', 'day',
+        'hour', 'minutes' можно получить месяц, день , час и минуту начала события"""
+    
+        output_dict = {}
+
+        start = self.event['start'].get('dateTime', self.event['start'].get('date'))
+        start_list = start.split('T')
+        date_start_list = start_list[0].split('-')
+        time_start_list = start_list[1].split(':')
+        
+        output_dict['month'] = date_start_list[1]
+        output_dict['day'] = date_start_list[2]
+        output_dict['hour'] = time_start_list[0]
+        output_dict['minutes'] = time_start_list[1]
+
+        return output_dict
+
+    def get_detatime_finish(self) -> Dict[str, str]:
+        """Возвращает словарь в котором по ключам: 'month', 'day',
+        'hour', 'minutes' можно получить месяц, день , час и минуту окончания события"""
+
+        output_dict = {}
+
+        finish = self.event['end'].get('dateTime', self.event['start'].get('date'))
+        finish_list = finish.split('T')
+        date_finish_list = finish_list[0].split('-')
+        time_finish_list = finish_list[1].split(':')
+        
+        output_dict['month'] = date_finish_list[1]
+        output_dict['day'] = date_finish_list[2]
+        output_dict['hour'] = time_finish_list[0]
+        output_dict['minutes'] = time_finish_list[1]
+
+        return output_dict
+    
+    def update_field(self, field: str, value: str):
+        self.event[field] = value
 
 
 class GoogleCalendarHelper:

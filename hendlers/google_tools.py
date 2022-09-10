@@ -3,19 +3,47 @@
 import datetime
 import os
 from googleapiclient.errors import HttpError
-from typing import List
+from typing import Dict, List
 from pprint import pprint
 from dotenv import load_dotenv
 
 from create_servise import service
+from Google import Event
 
 
 load_dotenv()
 
 CALENDAR_ID = os.getenv('CALENDAR_ID')
 
-def get_events_list() -> List[dict]:
-    """Получает словарь с событиями из гугл календаря."""
+
+def get_free_events() -> List[Event]:
+    """Получает от гугл календаря список событий и отбирает все с пометкой 
+    "свободно" """
+
+    free_events = []
+    oll_event = get_events_list()
+    for simple_event in oll_event:
+        if simple_event.event.get('summary') == 'свободно':
+            free_events.append(simple_event)
+    return free_events
+
+
+def get_users_booking(username: str) -> List[Event]:
+    """Отбирает все события забронированные пользователем."""
+
+    event_list = []
+    input_list = get_events_list()
+    for simple_event in input_list:
+        if simple_event.event.get('summary') == username:
+            event_list.append(simple_event)
+    return event_list
+
+
+def get_events_list() -> List[Event]:
+    """Получает словарь с событиями из гугл календаря и возвращает
+    список объектов класса Event."""
+    
+    output_events = []
 
     try:
         now = datetime.datetime.utcnow().isoformat() + 'Z'
@@ -24,13 +52,16 @@ def get_events_list() -> List[dict]:
             maxResults=100, singleEvents=True,
             orderBy='startTime'
         ).execute()
-        # pprint(events_result)
-        events = events_result.get('items', [])
+        dict_with_events = events_result.get('items', [])
 
     except HttpError as error:
         print('An error occurred: %s' % error)
+    
+    for event in dict_with_events:
+        event_obj = Event(event=event)
+        output_events.append(event_obj)
 
-    return events
+    return output_events
 
 
 def update_event(data: dict):
@@ -39,33 +70,29 @@ def update_event(data: dict):
     day = data.get('day')
     time = data.get('time')
     user = data.get('user')
-    oll_events = get_events_list()
-
-    for simple_event in oll_events:
-        if simple_event.get('summary') == 'свободно':
-            free_ivents.append(simple_event)
+    free_ivents: List[Event] = get_events_list()
 
     for event in free_ivents:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date = start_list[0].split('-')
-        time1 = start_list[1].split(':')
+        start = event.get_detatime_start()
+        month_st = start.get('month')
+        day_st = start.get('day')
+        hour_st = start.get('hour')
 
-        if date[2] == day and date[1] == month and time[0] == time1[0]:
+        if day_st == day and month_st == month and time[0] == hour_st:
             filtered_event = event
     
-    filtered_event['summary'] = user
+    filtered_event.update_field('summary', user)
     
-    event_id = filtered_event.get('id')
+    event_id = filtered_event.event.get('id')
     service.events().update(
         calendarId=CALENDAR_ID,
         eventId=event_id,
-        body=filtered_event
+        body=filtered_event.event
         ).execute()
 
 
 def cencel_booking(data: str, username: str):
-    input_list = get_events_list()
+    input_list = get_users_booking(username)
     event_list = []
 
     data_split = data.split(' ')
@@ -74,28 +101,28 @@ def cencel_booking(data: str, username: str):
     month = deta_input[1]
     time = data_split[2].split(':')
 
-
-    for simple_event in input_list:
-        if simple_event.get('summary') == username:
-            event_list.append(simple_event)
     
-    for event in event_list:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        start_list = start.split('T')
-        date = start_list[0].split('-')
-        time1 = start_list[1].split(':')
+    for event in input_list:
+        start = event.get_detatime_start()
+        month_st = start.get('month')
+        day_st = start.get('day')
+        hour_st = start.get('hour')
+        minutes_st = start.get('minutes')
 
-        if date[2] == day and date[1] == month and time[0] == time1[0]\
-            and time[1] == time1[1]:
+        if day_st == day and month_st == month and time[0] == hour_st\
+            and time[1] == minutes_st:
 
             filtered_event = event
     
-    filtered_event['summary'] = 'свободно'
+    filtered_event.update_field('summary', 'свободно')
     
-    event_id = filtered_event.get('id')
+    event_id = filtered_event.event.get('id')
     service.events().update(
         calendarId=CALENDAR_ID,
         eventId=event_id,
-        body=filtered_event
+        body=filtered_event.event
         ).execute()
     
+
+if __name__ == 'main':
+    pass
