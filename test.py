@@ -1,4 +1,5 @@
 import datetime
+import os
 from pprint import pprint
 from typing import List
 from googleapiclient.errors import HttpError
@@ -32,3 +33,6 @@ def get_events_list() -> List[dict]:
         print('An error occurred: %s' % error)
 
     return events
+
+dir = os.path.abspath(os.curdir)
+print(dir)
