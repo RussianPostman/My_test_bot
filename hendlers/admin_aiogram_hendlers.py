@@ -1,16 +1,12 @@
 """В этом файле находятся обработчики хбщих функций бота"""
 
-from msilib.schema import MsiAssembly
 import os
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import dp, bot
 from dotenv import load_dotenv
-from aiogram.dispatcher.filters import Text
 
 from hendlers.keyboards import kb_admin, kb_on_start
-from create_bot import dir
 
 
 load_dotenv()
