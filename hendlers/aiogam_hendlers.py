@@ -1,4 +1,4 @@
-"""В этом файле находятся обработчики самого бота, а так же инициализируется диспетчер."""
+"""В этом файле находятся обработчики хбщих функций бота"""
 
 import os
 from aiogram import types, Dispatcher
@@ -8,6 +8,7 @@ from create_bot import dp, bot
 from dotenv import load_dotenv
 from aiogram.dispatcher.filters import Text
 
+from create_bot import service
 from hendlers.data_hendlers import HELLO_TEXT, HELP_TEXT, events_list_hendler, \
     get_event_month, month_convert_to_digit, get_event_day, get_event_hour, \
     event_hour_hendler, admin_notification_hendler, user_booking, print_booking
@@ -27,13 +28,39 @@ async def comand_start(message: types.Message):
 async def comand_help(message: types.Message):
     await bot.send_message(message.from_user.id, HELP_TEXT,
                            reply_markup=kb_on_start)
+    if not service:
+        bot.send_message(
+            message.from_user.id,
+            'В настоящий момент сервис не долтупен, сообщение об ошибке уже отправленно.',
+            reply_markup=kb_on_start)
+        await bot.send_message(
+            ADMIN_ID,
+            f'Ваши пользователи не могут использовать сервис, обновите ключ доступа.')
 
 
 async def get_event_list(message: types.Message):
+    if not service:
+        bot.send_message(
+            message.from_user.id,
+            'В настоящий момент сервис не долтупен, сообщение об ошибке уже отправленно.',
+            reply_markup=kb_on_start)
+        await bot.send_message(
+            ADMIN_ID,
+            f'Ваши пользователи не могут использовать сервис, обновите ключ доступа.')
+
     await  bot.send_message(message.from_user.id, events_list_hendler())
 
 
 async def my_booking(message: types.Message):
+    if not service:
+        bot.send_message(
+            message.from_user.id,
+            'В настоящий момент сервис не долтупен, сообщение об ошибке уже отправленно.',
+            reply_markup=kb_on_start)
+        await bot.send_message(
+            ADMIN_ID,
+            f'Ваши пользователи не могут использовать сервис, обновите ключ доступа.')
+
     booking = user_booking(message.from_user.full_name)
     if len(booking) == 0:
         await bot.send_message(
@@ -152,7 +179,7 @@ async def cencel_start(message: types.Message):
         reply_markup=generate_bottoms(user_booking(message.from_user.full_name))
         )
 
-
+# Завершение отмены бронирования
 async def chose_detatime(message: types.Message, state: FSMContext):
     validation_list = user_booking(message.from_user.full_name)
     if message.text in validation_list:
@@ -186,3 +213,6 @@ def register_hendlers(dp: Dispatcher):
     dp.register_message_handler(cencel_start, commands='Отменить_бронирование', state=None)
     dp.register_message_handler(chose_detatime, state=FSMCencel.chose)
     
+
+if __name__ == '__main__':
+    pass

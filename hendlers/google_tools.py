@@ -3,11 +3,11 @@
 import datetime
 import os
 from googleapiclient.errors import HttpError
-from typing import Dict, List
+from typing import List
 from pprint import pprint
 from dotenv import load_dotenv
 
-from create_servise import service
+from create_bot import service
 from Google import Event
 
 
@@ -93,7 +93,6 @@ def update_event(data: dict):
 
 def cencel_booking(data: str, username: str):
     input_list = get_users_booking(username)
-    event_list = []
 
     data_split = data.split(' ')
     deta_input = data_split[0].split('.')
