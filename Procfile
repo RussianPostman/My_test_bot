@@ -1,0 +1,1 @@
+web: python asinc_bot.py
