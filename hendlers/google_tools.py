@@ -23,7 +23,7 @@ def get_free_events() -> List[Event]:
     free_events = []
     oll_event = get_events_list()
     for simple_event in oll_event:
-        if simple_event.event.get('summary') == 'свободно':
+        if simple_event.event.get('summary') == '+':
             free_events.append(simple_event)
     return free_events
 
@@ -113,7 +113,7 @@ def cencel_booking(data: str, username: str):
 
             filtered_event = event
     
-    filtered_event.update_field('summary', 'свободно')
+    filtered_event.update_field('summary', '+')
     
     event_id = filtered_event.event.get('id')
     service.events().update(

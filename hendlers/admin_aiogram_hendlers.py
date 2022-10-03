@@ -13,7 +13,8 @@ from hendlers.google_tools import get_free_events
 
 load_dotenv()
 
-ADMIN_ID = os.getenv('MODERATOR_ID')
+MODERATOR_ID = os.getenv('MODERATOR_ID')
+ADMIN_ID = os.getenv('ADMIN_ID')
 
 # Тут начинается машина обновления токена доступа
 class FSMСredentials(StatesGroup):
@@ -36,10 +37,13 @@ async def send_file(message: types.Message, state: FSMContext):
         await FSMСredentials.next()
         await message.reply(
             'Пришлите новый ключ доступа',
+            reply_markup=types.ReplyKeyboardRemove()
             )
     else:
+        await state.finish()
         await message.reply(
-            'ПОлучен ответ отличный от "Да", обновление остановленно',
+            'Получен ответ отличный от "Да", обновление остановленно',
+            reply_markup=kb_on_start
             )
 
 # 
@@ -55,9 +59,9 @@ async def update_credentials(message: types.Document, state: FSMContext):
 
 async def hendmade_folling(message: types.Message):
     while True:
-        war = get_free_events()
-        print(war)
-        await asyncio.sleep(3)
+        await get_free_events()
+        # print(war)
+        await asyncio.sleep(20)
 
 
 def register_admin_hendlers(dp: Dispatcher):
