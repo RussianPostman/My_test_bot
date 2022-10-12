@@ -18,11 +18,15 @@ CALENDAR_ID = os.getenv('CALENDAR_ID')
 
 def get_free_events() -> List[Event]:
     """Получает от гугл календаря список событий и отбирает все с пометкой 
-    "свободно" """
+    "+" """
 
     free_events = []
-    oll_event = get_events_list()
-    for simple_event in oll_event:
+    all_event = get_events_list()
+
+    if all_event is None:
+        return None
+
+    for simple_event in all_event:
         if simple_event.event.get('summary') == '+':
             free_events.append(simple_event)
     return free_events
@@ -48,7 +52,7 @@ def get_events_list() -> List[Event]:
     try:
         now = datetime.datetime.utcnow().isoformat() + 'Z'
         events_result = service.events().list(
-            calendarId='primary', timeMin=now,
+            calendarId=CALENDAR_ID, timeMin=now,
             maxResults=100, singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -56,6 +60,7 @@ def get_events_list() -> List[Event]:
 
     except HttpError as error:
         print('An error occurred: %s' % error)
+        return None
     
     for event in dict_with_events:
         event_obj = Event(event=event)

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from hendlers.keyboards import kb_admin, kb_on_start
 from hendlers.google_tools import get_free_events
+from create_bot import bot
 
 
 load_dotenv()
@@ -33,7 +34,7 @@ async def mew_credentials(message: types.Message):
 
 
 async def send_file(message: types.Message, state: FSMContext):
-    if message.text == 'Да':
+    if message.text == 'ubnfhf':
         await FSMСredentials.next()
         await message.reply(
             'Пришлите новый ключ доступа',
@@ -58,10 +59,18 @@ async def update_credentials(message: types.Document, state: FSMContext):
 
 
 async def hendmade_folling(message: types.Message):
+    count = 0
     while True:
-        await get_free_events()
-        # print(war)
-        await asyncio.sleep(20)
+        war = get_free_events()
+        if war:
+            day = count // 24
+            hour = count % 24
+            await bot.send_message(MODERATOR_ID, f'работает {day}д и {hour}ч')
+            count += 1
+            await asyncio.sleep(3600)
+        else:
+            await bot.send_message(MODERATOR_ID, f'сломалось')
+            return
 
 
 def register_admin_hendlers(dp: Dispatcher):
