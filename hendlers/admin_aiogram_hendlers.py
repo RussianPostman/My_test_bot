@@ -28,13 +28,12 @@ async def mew_credentials(message: types.Message):
 
     await FSMСredentials.agry.set()
     await message.reply(
-        'Следующее действие удалит старый ключ доступа, Вы уверенны?',
-        reply_markup=kb_admin
+        'Введите пароль',
         )
 
 
 async def send_file(message: types.Message, state: FSMContext):
-    if message.text == 'ubnfhf':
+    if message.text == os.getenv('PASSWORD'):
         await FSMСredentials.next()
         await message.reply(
             'Пришлите новый ключ доступа',
@@ -52,7 +51,7 @@ async def update_credentials(message: types.Document, state: FSMContext):
     src = 'docs/token.json'
     if os.path.exists('docs/token.json'):
         os.remove('docs/token.json')
-    await message.document.download(destination_file=src )
+    await message.document.download(destination_file=src)
 
     await state.finish()
     await message.reply('Готово!', reply_markup=kb_on_start)
@@ -62,7 +61,9 @@ async def hendmade_folling(message: types.Message):
     count = 0
     while True:
         war = get_free_events()
-        if war:
+        # await bot.send_message(MODERATOR_ID, f'war =  {war}')
+
+        if war != None:
             day = count // 24
             hour = count % 24
             await bot.send_message(MODERATOR_ID, f'работает {day}д и {hour}ч')
@@ -70,12 +71,13 @@ async def hendmade_folling(message: types.Message):
             await asyncio.sleep(3600)
         else:
             await bot.send_message(MODERATOR_ID, f'сломалось')
-            return
+            await asyncio.sleep(3600)
+
 
 
 def register_admin_hendlers(dp: Dispatcher):
     # машина состояний обновление токена доступа
     dp.register_message_handler(hendmade_folling, commands='+')
-    dp.register_message_handler(mew_credentials, commands='Токен', state=None)
+    dp.register_message_handler(mew_credentials, commands='token', state=None)
     dp.register_message_handler(send_file, state=FSMСredentials.agry)
     dp.register_message_handler(update_credentials, state=FSMСredentials.file, content_types=['document'])

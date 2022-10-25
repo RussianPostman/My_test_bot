@@ -58,7 +58,7 @@ def get_events_list() -> List[Event]:
         ).execute()
         dict_with_events = events_result.get('items', [])
 
-    except HttpError as error:
+    except AttributeError as error:
         print('An error occurred: %s' % error)
         return None
     
