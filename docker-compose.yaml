@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    image: russianpostman/bot:v1.0
+    ports:
+      - "80:80"
+    container_name: bot_1
+    restart: always
+    command: python main.py
+    env_file:
+      - .env

@@ -7,7 +7,8 @@ from typing import List
 from pprint import pprint
 from dotenv import load_dotenv
 
-from create_bot import service
+# from create_bot import service
+from Google import Oauth2_autentefication
 from Google import Event
 
 
@@ -48,6 +49,7 @@ def get_events_list() -> List[Event]:
     список объектов класса Event."""
     
     output_events = []
+    service = Oauth2_autentefication()
 
     try:
         now = datetime.datetime.utcnow().isoformat() + 'Z'
@@ -70,6 +72,8 @@ def get_events_list() -> List[Event]:
 
 
 def update_event(data: dict):
+    service = Oauth2_autentefication()
+
     free_ivents = []
     month = data.get('month')
     day = data.get('day')
@@ -97,6 +101,8 @@ def update_event(data: dict):
 
 
 def cencel_booking(data: str, username: str):
+    service = Oauth2_autentefication()
+
     input_list = get_users_booking(username)
 
     data_split = data.split(' ')

@@ -1,4 +1,4 @@
-"""В этом файле находятся обработчики хбщих функций бота"""
+"""В этом файле находятся обработчики общих функций бота"""
 
 import os
 from aiogram import types, Dispatcher
@@ -8,7 +8,7 @@ from create_bot import dp, bot
 from dotenv import load_dotenv
 from aiogram.dispatcher.filters import Text
 
-from create_bot import service
+from Google import Oauth2_autentefication
 from hendlers.data_hendlers import HELLO_TEXT, HELP_TEXT, events_list_hendler, \
     get_event_month, month_convert_to_digit, get_event_day, get_event_hour, \
     event_hour_hendler, admin_notification_hendler, user_booking, print_booking
@@ -26,10 +26,11 @@ async def comand_start(message: types.Message):
 
 
 async def comand_help(message: types.Message):
+    service = Oauth2_autentefication()
     await bot.send_message(message.from_user.id, HELP_TEXT,
                            reply_markup=kb_on_start)
     if not service:
-        bot.send_message(
+        await bot.send_message(
             message.from_user.id,
             'В настоящий момент сервис не долтупен, сообщение об ошибке уже отправленно.',
             reply_markup=kb_on_start)
@@ -39,6 +40,7 @@ async def comand_help(message: types.Message):
 
 
 async def get_event_list(message: types.Message):
+    service = Oauth2_autentefication()
     if not service:
         bot.send_message(
             message.from_user.id,
@@ -52,6 +54,7 @@ async def get_event_list(message: types.Message):
 
 
 async def my_booking(message: types.Message):
+    service = Oauth2_autentefication()
     if not service:
         bot.send_message(
             message.from_user.id,

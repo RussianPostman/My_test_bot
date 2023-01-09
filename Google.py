@@ -15,16 +15,11 @@ def Oauth2_autentefication():
     SCOPES = ['https://www.googleapis.com/auth/calendar']
     creds = None
     if os.path.exists('docs/token.json'):
-        print('Токен найден')
         creds = Credentials.from_authorized_user_file('docs/token.json', SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'docs/credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('docs/token.json', 'w') as token:
             token.write(creds.to_json()) 
