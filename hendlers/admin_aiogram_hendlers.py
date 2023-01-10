@@ -81,3 +81,7 @@ def register_admin_hendlers(dp: Dispatcher):
     dp.register_message_handler(mew_credentials, commands='token', state=None)
     dp.register_message_handler(send_file, state=FSMСredentials.agry)
     dp.register_message_handler(update_credentials, state=FSMСredentials.file, content_types=['document'])
+
+
+if __name__ == '__main__':
+	pass

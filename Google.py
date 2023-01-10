@@ -16,13 +16,18 @@ def Oauth2_autentefication():
     creds = None
     if os.path.exists('docs/token.json'):
         creds = Credentials.from_authorized_user_file('docs/token.json', SCOPES)
+    else:
+        return None
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except:
+                return None
         # Save the credentials for the next run
-        with open('docs/token.json', 'w') as token:
-            token.write(creds.to_json()) 
+            with open('docs/token.json', 'w') as token:
+                token.write(creds.to_json()) 
 
     service = build('calendar', 'v3', credentials=creds)
     return service

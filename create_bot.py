@@ -20,8 +20,8 @@ bot = Bot(TELEGRAM_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 dir = os.path.abspath(os.curdir)
 
-# try:
-#     service = Oauth2_autentefication()
-# except Exception as error:
-#     service = None
-#     print('Токен устарел, давайте новый')
+try:
+    service = Oauth2_autentefication()
+except Exception as error:
+    service = None
+    print('Токен устарел, давайте новый')
